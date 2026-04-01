@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Shield, Check, Trash2, Calendar, Clock, MapPin, Users, Bell, Plus, X, Edit } from 'lucide-react';
 import AdminLogin from '@/components/AdminLogin';
+import { readResponseJson } from '@/lib/read-response-json';
 
 interface Event {
   id: string;
@@ -75,7 +76,7 @@ export default function AdminPanel() {
     try {
       const response = await fetch('/api/admin/events');
       if (response.ok) {
-        const data = await response.json();
+        const data = await readResponseJson<{ events?: Event[] }>(response);
         setEvents(data.events || []);
       }
     } catch (error) {

@@ -5,6 +5,7 @@ import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import AuthModal from './AuthModal';
 import { useAuth } from './AuthContext';
+import { readResponseJson } from '@/lib/read-response-json';
 
 type TicketInfo = {
     id: string;
@@ -68,7 +69,7 @@ export default function Navbar() {
             if (!response.ok) {
                 throw new Error('Failed to load events');
             }
-            const data = await response.json();
+            const data = await readResponseJson<{ events?: unknown[] }>(response);
             const events = data.events || [];
 
             const userTickets: TicketInfo[] = events

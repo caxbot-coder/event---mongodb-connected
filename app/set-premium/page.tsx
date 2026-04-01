@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useAuth } from '@/components/AuthContext';
+import { readResponseJson } from '@/lib/read-response-json';
 
 export default function SetPremiumPage() {
   const { user } = useAuth();
@@ -29,7 +30,7 @@ export default function SetPremiumPage() {
         }),
       });
 
-      const result = await response.json();
+      const result = await readResponseJson<{ success?: boolean; error?: string }>(response);
 
       if (response.ok && result.success) {
         setMessage(`Success! Premium status set to ${isPremium}. Please refresh the page to see changes.`);

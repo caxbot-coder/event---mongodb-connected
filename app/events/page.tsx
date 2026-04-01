@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Calendar, MapPin, Clock, Users } from 'lucide-react';
 import { useAuth } from '@/components/AuthContext';
 import { useHotToast } from '@/components/HotToastContext';
+import { readResponseJson } from '@/lib/read-response-json';
 
 interface Event {
   id: string;
@@ -82,14 +83,18 @@ export default function EventsPage() {
         }),
       });
 
-      const result = await response.json();
+      const result = await readResponseJson<{
+        success?: boolean;
+        error?: string;
+        event?: Event;
+      }>(response);
 
       if (!response.ok || !result.success) {
         showHotToast(result.error || 'Failed to select winner.', 'error');
         return;
       }
 
-      const updatedEvent: Event = result.event;
+      const updatedEvent: Event = result.event as Event;
 
       setEvents((prev) =>
         prev.map((evt) => (evt.id === updatedEvent.id ? updatedEvent : evt))
@@ -99,7 +104,10 @@ export default function EventsPage() {
       showHotToast('Winner selected successfully!', 'success');
     } catch (error) {
       console.error('Failed to select winner:', error);
-      showHotToast('Failed to select winner. Please try again.', 'error');
+      showHotToast(
+        error instanceof Error ? error.message : 'Failed to select winner. Please try again.',
+        'error'
+      );
     } finally {
       setIsSavingWinner(false);
     }
@@ -136,7 +144,7 @@ export default function EventsPage() {
     try {
       const response = await fetch('/api/events');
       if (response.ok) {
-        const data = await response.json();
+        const data = await readResponseJson<{ events?: Event[] }>(response);
         const eventsData = data.events || [];
         console.log('Fetched events:', eventsData); // Debug log
         setEvents(eventsData);
@@ -262,7 +270,7 @@ export default function EventsPage() {
             if (!res.ok) {
               throw new Error('Failed to fetch user');
             }
-            const data = await res.json();
+            const data = await readResponseJson<{ user?: { email?: string }; email?: string }>(res);
             const email: string =
               data?.user?.email || data?.email || 'unknown@example.com';
             return {
@@ -310,8 +318,12 @@ export default function EventsPage() {
         // Refresh events to remove the deleted event from the list
         fetchEvents();
       } else {
-        const error = await response.json();
-        alert(`Failed to delete event: ${error.error || 'Unknown error'}`);
+        try {
+          const error = await readResponseJson<{ error?: string }>(response);
+          alert(`Failed to delete event: ${error.error || 'Unknown error'}`);
+        } catch (e) {
+          alert(e instanceof Error ? e.message : 'Failed to delete event');
+        }
       }
     } catch (error) {
       console.error('Error deleting event:', error);
@@ -389,7 +401,10 @@ export default function EventsPage() {
         body: JSON.stringify({ eventId, userId: user.id, slot: selectedSlot }),
       });
 
-      const result = await response.json();
+      const result = await readResponseJson<{
+        success?: boolean;
+        error?: string;
+      }>(response);
 
       if (response.ok && result.success) {
         showHotToast('Successfully joined the event!', 'success');
@@ -454,7 +469,10 @@ export default function EventsPage() {
       }
     } catch (error) {
       console.error('Error joining event:', error);
-      showHotToast('Failed to join event. Please try again.', 'error');
+      showHotToast(
+        error instanceof Error ? error.message : 'Failed to join event. Please try again.',
+        'error'
+      );
     } finally {
       setIsJoining(false);
     }

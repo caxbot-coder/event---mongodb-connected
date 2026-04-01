@@ -14,6 +14,7 @@ import {
   SettingsIcon,
   TrendingUpIcon
 } from 'lucide-react';
+import { readResponseJson } from '@/lib/read-response-json';
 
 interface DashboardStats {
   totalEvents: number;
@@ -64,7 +65,7 @@ export default function AdminDashboard() {
       // Fetch events data
       const eventsResponse = await fetch('/api/admin/events');
       if (eventsResponse.ok) {
-        const response = await eventsResponse.json();
+        const response = await readResponseJson<{ events?: unknown[] }>(eventsResponse);
         const events = Array.isArray(response.events) ? response.events : Array.isArray(response) ? response : [];
         
         // Calculate stats

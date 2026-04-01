@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useAuth } from '@/components/AuthContext';
 import { Calendar, MapPin, Clock, Users, DollarSign, Tag, FileText, Save, X, Upload, Image as ImageIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { readResponseJson } from '@/lib/read-response-json';
 
 interface EventFormData {
   title: string;
@@ -105,7 +106,7 @@ export default function CreateEventPage() {
         body: JSON.stringify(eventData),
       });
 
-      const result = await response.json();
+      const result = await readResponseJson<{ success?: boolean; error?: string }>(response);
 
       if (response.ok && result.success) {
         alert('Event submitted for approval! It will be visible once approved by an admin.');
